@@ -16,6 +16,30 @@ class ToDoListViewController: UITableViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
     }
+    
+    // MARK: - Add New Items
+    @IBAction func addButtonTapped(_ sender: UIBarButtonItem) {
+        
+        var textField = UITextField()
+        
+        let alertController = UIAlertController(title: "Add new Todoey", message: "", preferredStyle: .alert)
+        let addTodoeyAction = UIAlertAction(title: "Add Item", style: .default) { (action) in
+//            print("Success!!")
+//            print(textField.text ?? "No text entered")
+            self.itemArray.append(textField.text!)
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
+        }
+        alertController.addAction(addTodoeyAction)
+        alertController.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Add new item"
+            textField = alertTextField
+//            print(alertTextField.text)
+        }
+        present(alertController, animated: true, completion: nil)
+    }
+    
 }
 
 
