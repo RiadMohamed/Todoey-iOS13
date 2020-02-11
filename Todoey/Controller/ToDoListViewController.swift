@@ -129,20 +129,17 @@ extension ToDoListViewController {
 
 // MARK: - SearchBar delegate methods
 extension ToDoListViewController : UISearchBarDelegate {
-    //    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-    //        let request : NSFetchRequest<Item> = Item.fetchRequest()
-    //        let searchPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-    //        request.predicate = searchPredicate
-    //        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-    //        loadItems(with: request, predicate: searchPredicate)
-    //    }
-    //
-    //    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-    //        if searchBar.text?.count == 0 {
-    //            loadItems()
-    //            DispatchQueue.main.async {
-    //                searchBar.resignFirstResponder()
-    //            }
-    //        }
-    //    }
+        func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+            let searchPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+            todoItems = todoItems?.filter(searchPredicate).sorted(byKeyPath: "dateCreated", ascending: true)
+        }
+    
+        func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+            if searchBar.text?.count == 0 {
+                loadItems()
+                DispatchQueue.main.async {
+                    searchBar.resignFirstResponder()
+                }
+            }
+        }
 }
