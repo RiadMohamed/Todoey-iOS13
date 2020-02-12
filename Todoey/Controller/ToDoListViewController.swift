@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListViewController: SwipeTableViewController {
     
@@ -24,6 +25,7 @@ class ToDoListViewController: SwipeTableViewController {
         super.viewDidLoad()
         searchBar.delegate = self
         tableView.rowHeight = 80
+        tableView.separatorStyle = .none
     }
     
 
@@ -52,6 +54,12 @@ extension ToDoListViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
+        let color = UIColor(hexString: selectedCategory!.backgroundColor)!
+        
+        if let backgroundColor = color.darken(byPercentage: CGFloat(indexPath.row)/CGFloat(todoItems!.count)) {
+            cell.backgroundColor = backgroundColor
+            cell.textLabel?.textColor = ContrastColorOf(backgroundColor, returnFlat: true)
+        }
         
         if let item = todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
