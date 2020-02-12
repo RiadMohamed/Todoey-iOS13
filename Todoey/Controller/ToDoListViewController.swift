@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class ToDoListViewController: UITableViewController {
+class ToDoListViewController: SwipeTableViewController {
     
     @IBOutlet weak var searchBar: UISearchBar!
     var todoItems: Results<Item>?
@@ -20,15 +20,86 @@ class ToDoListViewController: UITableViewController {
         }
     }
     
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
-        //        loadItems()
         searchBar.delegate = self
+        tableView.rowHeight = 80
     }
     
-    // MARK: - Add New Items
+
+    
+    // MARK: - Override functions
+    override func deleteModel(at indexPath: IndexPath) {
+        // TODO: code to delete the item at the given indexPath
+        if let itemToBeDeleted = todoItems?[indexPath.row] {
+            do {
+                try realm.write {
+                    realm.delete(itemToBeDeleted)
+                }
+            } catch {
+                print("Failed to delete the item. \(error)")
+            }
+        }
+    }
+}
+
+
+// MARK: - Tableview Datasource Methods
+extension ToDoListViewController {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return todoItems?.count ?? 1
+    }
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
+        
+        if let item = todoItems?[indexPath.row] {
+            cell.textLabel?.text = item.title
+            cell.accessoryType = item.done ? .checkmark : .none
+        } else {
+            cell.textLabel?.text = "No Items found yet"
+            cell.accessoryType = .none
+        }
+        return cell
+    }
+}
+
+// MARK: - Tableview Delegate Methods
+extension ToDoListViewController {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let item = todoItems?[indexPath.row] {
+            do {
+                try realm.write {
+                    item.done.toggle()
+                }
+            } catch {
+                print("Error updating item done status. \(error)")
+            }
+            tableView.reloadData()
+        }
+    }
+}
+
+// MARK: - SearchBar delegate methods
+extension ToDoListViewController : UISearchBarDelegate {
+        func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+            let searchPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+            todoItems = todoItems?.filter(searchPredicate).sorted(byKeyPath: "dateCreated", ascending: true)
+        }
+    
+        func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+            if searchBar.text?.count == 0 {
+                loadItems()
+                DispatchQueue.main.async {
+                    searchBar.resignFirstResponder()
+                }
+            }
+        }
+}
+
+// MARK: - CRUD Data Maninpulation Methods
+extension ToDoListViewController {
+    // MARK: - Add new Items
     @IBAction func addButtonTapped(_ sender: UIBarButtonItem) {
         
         var textField = UITextField()
@@ -56,90 +127,9 @@ class ToDoListViewController: UITableViewController {
         }
         present(alertController, animated: true, completion: nil)
     }
-    
-    
+   
     func loadItems() {
-        
         todoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
-        
-        //        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
-        //
-        //        if let oldPredicate = predicate {
-        //            request.predicate = NSCompoundPredicate(type: .and, subpredicates: [oldPredicate, categoryPredicate])
-        //        } else {
-        //            request.predicate = categoryPredicate
-        //        }
-        //
-        //
-        //        do {
-        //            itemArray = try context.fetch(request)
-        //        } catch {
-        //            print("Error loading data from DB. \(error)")
-        //        }
         tableView.reloadData()
     }
-}
-
-
-// MARK: - Tableview Datasource Methods
-extension ToDoListViewController {
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return todoItems?.count ?? 1
-    }
-    
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell")!
-        if let item = todoItems?[indexPath.row] {
-            cell.textLabel?.text = item.title
-            cell.accessoryType = item.done ? .checkmark : .none
-        } else {
-            cell.textLabel?.text = "No Items found yet"
-            cell.accessoryType = .none
-        }
-        return cell
-    }
-}
-
-
-// MARK: - Tableview Delegate Methods
-extension ToDoListViewController {
-    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if let item = todoItems?[indexPath.row] {
-            do {
-                try realm.write {
-                    //                    realm.delete(item)
-                    item.done.toggle()
-                }
-            } catch {
-                print("Error updating item done status. \(error)")
-            }
-            tableView.reloadData()
-        }
-        
-        //        if todoItems?[indexPath.row].done == true {
-        //            tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
-        //        } else {
-        //            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        //        }
-        //        tableView.deselectRow(at: indexPath, animated: true)
-        //        saveItems()
-    }
-}
-
-
-// MARK: - SearchBar delegate methods
-extension ToDoListViewController : UISearchBarDelegate {
-        func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-            let searchPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
-            todoItems = todoItems?.filter(searchPredicate).sorted(byKeyPath: "dateCreated", ascending: true)
-        }
-    
-        func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-            if searchBar.text?.count == 0 {
-                loadItems()
-                DispatchQueue.main.async {
-                    searchBar.resignFirstResponder()
-                }
-            }
-        }
 }
