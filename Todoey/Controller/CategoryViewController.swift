@@ -23,6 +23,14 @@ class CategoryViewController: SwipeTableViewController {
         tableView.separatorStyle = .none
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        guard let navBar = navigationController?.navigationBar else {
+            fatalError("Navigation Controller value is nil")
+        }
+        
+        navBar.backgroundColor = UIColor(hexString: "1D9BF6")
+    }
+    
     // MARK: - Override functions
     override func deleteModel(at indexPath: IndexPath) {
         if let categoryToBeDeleted = categories?[indexPath.row] {
@@ -47,6 +55,7 @@ extension CategoryViewController {
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         if let currentCategroy = categories?[indexPath.row] {
             cell.textLabel?.text = currentCategroy.name
+            cell.textLabel?.textColor = ContrastColorOf(UIColor(hexString: currentCategroy.backgroundColor)!, returnFlat: true)
             cell.backgroundColor = UIColor(hexString: currentCategroy.backgroundColor)
         } else {
             cell.textLabel?.text = "No Categories added yet"

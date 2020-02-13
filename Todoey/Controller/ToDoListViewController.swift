@@ -28,6 +28,21 @@ class ToDoListViewController: SwipeTableViewController {
         tableView.separatorStyle = .none
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        guard let navBar = navigationController?.navigationBar else {
+            fatalError("Navigation Controller value is nil")
+        }
+        
+        title = selectedCategory!.name
+
+        if let barColor = UIColor(hexString: selectedCategory!.backgroundColor) {
+            navBar.backgroundColor = barColor
+            navBar.tintColor = ContrastColorOf(barColor, returnFlat: true)
+            navBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor : ContrastColorOf(barColor, returnFlat: true)]
+            searchBar.barTintColor = barColor
+        }
+
+    }
 
     
     // MARK: - Override functions
@@ -93,6 +108,7 @@ extension ToDoListViewController : UISearchBarDelegate {
         func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
             let searchPredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
             todoItems = todoItems?.filter(searchPredicate).sorted(byKeyPath: "dateCreated", ascending: true)
+            tableView.reloadData()
         }
     
         func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
